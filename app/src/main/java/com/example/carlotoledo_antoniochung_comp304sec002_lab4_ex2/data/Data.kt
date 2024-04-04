@@ -3,9 +3,8 @@ package com.example.carlotoledo_antoniochung_comp304sec002_lab4_ex2.data
 object Data {
     val programs = listOf(
         Program(3402, "Artificial Intelligence (Optional Co-op)", listOf("COMP-214", "COMP-216", "COMP-247", "COMP-254", "COMP-311")),
-        Program(3404, "Game - Programming (Optional Co-op)", listOf("COMP-217", "COMP-254", "COMP-311", "COMP-397", "MATH-210")),
-        Program(3409, "Software Engineering Technology (Optional Co-op)", listOf("COMP-217", "COMP-254", "COMP-311", "COMP-397", "MATH-210")),
-        // Add more programs
+        Program(3404, "Game - Programming (Optional Co-op)", listOf("COMP-254", "COMP-311", "COMP-397", "MATH-210")),
+        Program(3409, "Software Engineering Technology (Optional Co-op)", listOf("COMP-212", "COMP-216", "COMP-254", "COMP-304", "COMP-311", "MATH-210")),
     )
 
     val courses = listOf(

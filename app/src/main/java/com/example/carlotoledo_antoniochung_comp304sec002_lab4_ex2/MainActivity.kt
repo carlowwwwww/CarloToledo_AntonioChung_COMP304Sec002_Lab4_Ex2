@@ -3,6 +3,7 @@ package com.example.carlotoledo_antoniochung_comp304sec002_lab4_ex2
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -23,11 +24,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.carlotoledo_antoniochung_comp304sec002_lab4_ex2.data.Course
 import com.example.carlotoledo_antoniochung_comp304sec002_lab4_ex2.data.Data
 import com.example.carlotoledo_antoniochung_comp304sec002_lab4_ex2.data.Program
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 
 
 class MainActivity : ComponentActivity() {
@@ -42,108 +59,73 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppContent() {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(text = "Select Program") })
-        },
-        content = { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .padding(paddingValues)
+    var expanded by remember { mutableStateOf(false) }
+    var selectedProgram by remember { mutableStateOf<Program?>(null) }
+
+    Column {
+        Box(
+            modifier = Modifier
+                .widthIn(max = 240.dp) // Limit dropdown width
+                .clip(MaterialTheme.shapes.medium) // Rounded corners
+                .background(Color.LightGray) // Background color
+                .padding(vertical = 4.dp) // Add vertical padding
+                .wrapContentSize(Alignment.Center) // Center content horizontally
+        ) {
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.width(IntrinsicSize.Min) // Match parent width
             ) {
-                ProgramList(
-                    programs = Data.programs
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                (Data.programs).forEach { program ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = program.name,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        },
+                        onClick = {
+                            selectedProgram = program
+                            expanded = false
+                        },
+                    )
+                }
             }
         }
-    )
-}
 
+        Text(
+            style = MaterialTheme.typography.titleLarge,
+            text = selectedProgram?.name ?: "Select a program",
+            modifier = Modifier
+                .padding(20.dp)
+                .clickable { expanded = true }
+                .background(Color.LightGray),
+            textAlign = TextAlign.Center // Center text horizontally
+        )
 
+        if (selectedProgram != null) {
+            val programCoursesMap = mutableMapOf<Program, List<Course>>()
+            val programCourses = selectedProgram!!.courses.mapNotNull { courseId ->
+                Data.courses.find { it.courseId == courseId }
+            }
+            programCoursesMap[selectedProgram!!] = programCourses
 
-@Composable
-fun CourseItem(course: Course, onClick: () -> Unit) {
-    Text(
-        text = course.courseName,
-        modifier = Modifier.clickable { onClick() }
-    )
-}
-
-
-
-
-
-
-
-@Composable
-fun ProgramList(programs: List<Program>) {
-    val programCoursesMap = mutableMapOf<Program, List<Course>>()
-
-    LazyColumn {
-        items(programs) { program ->
-            ProgramItem(program, programCoursesMap)
+            programCoursesMap[selectedProgram]?.let { CourseList(courses = it) }
         }
     }
 }
 
 @Composable
-fun CourseList() {
+fun CourseList(courses: List<Course>) {
     LazyColumn ( modifier = Modifier.padding(start = 8.dp))
     {
-        items(Data.courses) { course ->
+        items(courses) { course ->
             CourseItem(course)
         }
     }
-}
-
-@Composable
-fun ProgramItem(program: Program, programCoursesMap: MutableMap<Program, List<Course>>) {
-    var expanded by remember { mutableStateOf(false) }  // Track whether the card is expanded
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .clickable {
-                expanded = !expanded
-            },  // Toggle the expanded state when the card is clicked
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = program.name, style = MaterialTheme.typography.titleLarge)
-            if (expanded) {  // Show the description if the card is expanded
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val programCourses = program.courses.mapNotNull { courseId ->
-                    Data.courses.find { it.courseId == courseId }
-                }
-                programCoursesMap[program] = programCourses
-
-                val text = programDescriptions(program, programCoursesMap)
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-    }
-}
-
-fun programDescriptions(selectedProgram: Program, programMap: MutableMap<Program, List<Course>>): String {
-    var programDetails = "\nProgram ID: ${selectedProgram.id}\n\n"
-
-    var programCourses = programMap[selectedProgram]
-
-    if (programCourses != null) {
-        for (course in programCourses) {
-            programDetails += "${course.courseId} : ${course.courseName}\n"
-        }
-    }
-    return programDetails
 }
 
 @Composable
